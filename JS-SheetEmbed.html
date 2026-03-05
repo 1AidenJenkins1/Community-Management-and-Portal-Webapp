@@ -1,0 +1,231 @@
+<!-- JS-Sheet.html -->
+<script id="JS-SheetEmbed">
+  /* 
+  sheet embed
+
+  construct the sheet:
+  - function name to say where you get the sheet from
+  - container to put the embed in
+
+  after being created sheet will automatically poll the sheet for changes
+  - every sheet element will have row data to tell the diffrences between them even if all the data changes
+  - rows that have the exact same data in newData are ignored and thrown away
+  - rows that are missing will be deleted from html
+  - rows that have diffrent data in newData will tell that specific section to update with new data
+  */
+  class SheetEmbed {
+    #spreadsheetId;
+    #sheetName;
+    #sheetContainer;
+    #tableContainer;
+    #bodyContainer;
+    #headerContainer;
+    #currentContent; // dont change element order, will break updating
+
+    constructor(spreadsheetId, sheetName, container) {
+      bootMessage.add({ bootMessage: ["INITIALIZING SHEET DATA REQUEST...", "LOADING SHEET DATA FILES..."] });
+      this.#spreadsheetId = spreadsheetId;
+      this.#sheetName = sheetName;
+
+      this.#sheetContainer = document.createElement("div");
+      this.#sheetContainer.className = "sheetContainer";
+      this.#sheetContainer.id = "sheetEmbed-" + sheetName;
+      this.#tableContainer = document.createElement("table");
+
+      this.#headerContainer = document.createElement("thead");
+      this.#bodyContainer = document.createElement("tbody");
+      this.#tableContainer.appendChild(this.#headerContainer);
+      this.#tableContainer.appendChild(this.#bodyContainer);
+
+      this.#sheetContainer.appendChild(this.#tableContainer);
+      container.appendChild(this.#sheetContainer);
+      
+      // this gets the sheet using the function name to get the sheet
+      google.script.run
+        .withSuccessHandler((sheetData) => {
+          this.#currentContent = this.getDataAsContent(sheetData);
+          this.render();
+          bootMessage.addThenClear({ bootMessage: ["SHEET DATA FILES RETREVED"] });
+          this.startPoll(); 
+        })
+        .withFailureHandler(error => {
+          bootMessage.add({ bootMessage: ["SHEET DATA FILES RETRIEVAL FAILURE", error] });
+          console.error("Initial sheet fetch failed:", error);
+        })
+        .requestSheetData({ spreadsheetId: this.#spreadsheetId, sheetName: this.#sheetName });
+    }
+
+    getDataAsContent(data) {
+      let content = [];
+      data.forEach((entry, index) => {
+        // data will always be in order of rows (top to bottom), use index to save row and data 
+        let dataEntry = { };
+        if (index == 0) { dataEntry = { row: index, data: entry, type :"header" }; }
+        else { dataEntry = { row: index, data: entry, type :"body" }; }
+        content.push(dataEntry);
+      });
+      // data list --> content list dataEntry objects with, row, data, and type
+      return content;
+    }
+
+    checkForChange() {
+      // Instead of returning, getAsTableContent() takes a success handler.
+      google.script.run
+        .withSuccessHandler(newData => {
+          // wait until sheet data returns
+          // turn sheet data into content list of data objects
+          const newContent = this.getDataAsContent(newData);
+
+          // turn list of objects into map
+          // for each object set the key to row and value to data
+          const currentContentMap = new Map(this.#currentContent.map(entry => [entry.row, entry]));
+          const newContentMap = new Map(newContent.map(entry => [entry.row, entry]));
+
+          let removed = []; // row exists in current doesnt in new
+          let changed = []; // row exists in current does in new, but data is diffrent
+          let added = []; // row doesnt exist in current does in new
+
+          this.#currentContent.forEach((dataEntry) => {
+            // check if dataEntry exists in our currentContent but not in our newData
+            if(!newContentMap.has(dataEntry.row)) {
+              removed.push(dataEntry); // if true add to our removed list
+            } else { 
+              // if the dataEntry does exist, check if the data matches
+              const newDataEntry = newContentMap.get(dataEntry.row);
+              if (JSON.stringify(dataEntry.data) !== JSON.stringify(newDataEntry.data)) {
+                changed.push(newDataEntry); // if the data does not match add to our changed list
+              }
+            }
+          })
+          newContent.forEach((dataEntry) => {
+            // check if dataEntry exists in our newData but not in our currentContent
+            if (!currentContentMap.has(dataEntry.row)) {
+              added.push(dataEntry); // if true add this to our added list
+            }
+          });
+
+          // send to update function then render
+          this.updateCurrentContent({ add:added, remove:removed, change:changed });
+        })
+        .withFailureHandler(error => {
+          console.error("Failed to get sheet data during change check:", error);
+        })
+        .requestSheetData({ spreadsheetId: this.#spreadsheetId, sheetName: this.#sheetName });
+    }
+    
+    // updates current Data using changes arguments 
+    // - all arguments should be in dataEntry list format [{row, data}, {row, data}])
+    updateCurrentContent(changes = {}) {
+      const {
+        replace = [],
+        add = [],
+        remove = [],
+        change = [],
+      } = changes
+
+      if (replace.length > 0) {
+        this.#currentContent = replace;
+        this.render();
+        return;
+      }
+      if (add.length > 0) {
+        this.#currentContent = [...this.#currentContent, ...add];
+      }
+      if (remove.length > 0) {
+        const removedRows = new Set(remove.map(entry => entry.row));
+        this.#currentContent = this.#currentContent.filter(item => !removedRows.has(item.row))
+      }
+      if (change.length > 0) {
+        const currentContentMap = new Map(this.#currentContent.map(entry => [entry.row, entry]));
+        change.forEach((dataEntry) => {
+          currentContentMap.set(dataEntry.row, dataEntry);
+        });
+        this.#currentContent = Array.from(currentContentMap.values());
+      }
+      if (add.length > 0 || remove.length > 0 || change.length > 0) {
+        this.render();
+      }
+      return;
+    }
+
+    // renders the currentContent of the sheet embed 
+    render () {
+      let header;
+      // only works on already set content data sets, wont remove elements, only change and add
+      this.#currentContent.forEach((dataEntry) => {
+        const entryType = dataEntry.type;
+        let elementId;
+
+        if (entryType == "header") {
+          elementId = "row-header-" + dataEntry.row
+          header = dataEntry;
+        } else {
+          elementId = "row-data-" + dataEntry.row
+        }
+
+        const fillDataRow = (row) => {
+          let count = 0;
+          dataEntry.data.forEach((tileData)=>{
+            let dataElement = document.createElement("td");
+            dataElement.textContent = tileData;
+            row.appendChild(dataElement);
+            count++;
+          })
+          /* this is not the best solution to empty cells but it works*/
+          while (count < header.data[0].length) {
+            let dataElement = document.createElement("td");
+            dataElement.textContent = " ";
+            row.appendChild(dataElement);
+            count++;
+          }
+        }
+        const fillHeaderRow = (row) => {
+          dataEntry.data.forEach((tileData)=>{
+            let headerElement = document.createElement("th");
+            headerElement.textContent = tileData;
+            row.appendChild(headerElement);
+          })
+        }
+
+        // this is a tr 
+        // the # makes the querySelector look for id
+        let rowElement = this.#tableContainer.querySelector(`#${elementId}`); 
+
+        if (rowElement) {
+          // if row element exists 
+          rowElement.innerHTML = ""; // remove all children of this row
+          if (entryType == "header") { fillHeaderRow(rowElement); }
+          else { fillDataRow(rowElement); }
+        } else {
+          // if element doesnt exist
+          rowElement = document.createElement("tr")
+          rowElement.id = (elementId);
+          if (entryType == "header") { fillHeaderRow(rowElement); this.#headerContainer.appendChild(rowElement); }
+          else { fillDataRow(rowElement); this.#bodyContainer.appendChild(rowElement); }
+        }
+      })
+      
+    }
+
+    startPoll() {    
+      const checkLogin = setInterval(() => {
+      console.log("checking for changes to sheet");
+      // If the element can be found the embed doesnt exist, close poll
+      if (!document.getElementById("sheetEmbed-" + this.#sheetName)) {
+        clearInterval(checkLogin);
+        console.log("Sheet has been closed, stopping poll.");
+        return;
+      }
+      // check for changes only if user is active to save API calls
+      if (userIsActive) {
+        this.checkForChange()
+      } else {
+        console.log("User is inactive, did not ping to save API calls.");
+      }
+      }, sec_to_ms(2));
+    }
+  }
+
+
+
+</script>
