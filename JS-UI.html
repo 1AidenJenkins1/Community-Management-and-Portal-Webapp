@@ -1,0 +1,438 @@
+<!-- JS-UI.html -->
+<script id="JS-UI">
+/**
+ * UI manager for the site 
+*/
+
+/* Misc */
+// most of this is for display purposes 
+// changing this will only break elements it wont give you access to anything security is serverside 
+
+// this will inject enum classes to ensure they are matching
+const UIGroup = <?!= JSON.stringify(UIGroup) ?>; 
+const UIElementType = <?!= JSON.stringify(UIElementType) ?>; 
+const TextType = <?!= JSON.stringify(TextType) ?>; 
+const PERMISSION = <?!= JSON.stringify(PERMISSION) ?>; 
+const RANK = <?!= JSON.stringify(RANK) ?>; 
+const RANK_ABBREVIATION = <?!= JSON.stringify(RANK_ABBREVIATION) ?>; 
+const DIVISION = <?!= JSON.stringify(DIVISION) ?>; 
+const DIVISION_ABBREVIATION = <?!= JSON.stringify(DIVISION_ABBREVIATION) ?>; 
+const Spreadsheet = <?!= JSON.stringify(Spreadsheet) ?>; 
+const InputType = <?!= JSON.stringify(InputType) ?>; 
+
+/* UI var */
+const menuContainer = document.getElementById("menu");
+const bootContainer = document.getElementById("boot");
+const userTypeContainer = document.getElementById("User_Type");
+const userRankContainer = document.getElementById("User_Rank");
+const userNameContainer = document.getElementById("User_Name");
+const userDivisionContainer = document.getElementById("User_Division");
+const siteVersionContainer = document.getElementById("Site_Version");
+let menuUINameFallback = UIGroup.HUB;
+let attemptingFallback = false;
+let booting = false;
+
+/*****/
+
+
+
+// theme
+function setTheme(color) {
+  document.body.classList.remove('white', 'green', 'blue'); // remove other themes
+  document.body.classList.add(color);
+}
+
+/*****/
+
+
+
+/* footer functions */
+
+// site version
+function setSiteVersionDisplay(siteVer) {
+  siteVersionContainer.innerHTML = siteVer;
+}
+
+// user display
+function setUserDisplay(userData) {
+  if (userData.permission === PERMISSION.GUEST) {
+    userTypeContainer.innerHTML = "GUEST"; 
+    userRankContainer.innerHTML = "";
+    userNameContainer.innerHTML = "";
+    userDivisionContainer.innerHTML = "";
+    return;
+  }
+  userTypeContainer.innerHTML = `${userData.permission.toUpperCase()}:`;
+  userRankContainer.innerHTML = rankToAbb(userData.rankList[0]);
+  userNameContainer.innerHTML = userData.discordUsername.toUpperCase();
+  userDivisionContainer.innerHTML = divisionToAbb(userData.divisionList[0]);
+}
+
+/*****/
+
+
+
+/* html and UI functions */
+
+// create HTML
+function createUIElement(Args = {}) {
+  // has the specific with handlers and variables of this function
+  const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+  // object destructuring, extracts variables, then extracts value from Args, if none use default
+  let {  
+    type = undefined, 
+    container = undefined, 
+    params = {},
+  } = thisFunc; 
+
+  thisFunc.withStartHandler();
+
+  let html_ref = null;
+
+  switch(type) {
+
+    case UIElementType.RAW_HTML: {
+      html_ref = document.createElement("div");
+      html_ref.innerHTML = params.html;
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.CONTAINER: {
+      html_ref = document.createElement("div");
+      fillContainerWith({ container: html_ref, elements: params.content });
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.SHEET_EMBED: {
+      const SheetEmbed_obj = new SheetEmbed(params.spreadsheetId, params.sheetName, container);
+      thisFunc.withSuccessHandler(SheetEmbed_obj);
+      break;
+    }
+    
+    case UIElementType.CAROUSEL_EMBED: {
+      const CarouselEmbed_obj = new CarouselEmbed(params.content, params, container);
+      thisFunc.withSuccessHandler(CarouselEmbed_obj);
+      break;
+    }
+
+    case UIElementType.BUTTON: {
+      // super outdated experiment code that was never fixed, will have to come back and fix later
+      html_ref = document.createElement("button");
+      html_ref.className = "menu-item";
+      html_ref.innerHTML = `
+        <div><strong> > ${params.label}</strong></div>
+        <div style="color: var(--text-soft); font-size:0.8em;">${params.description}</div>
+      `;
+      let clickHandler = params.onClick;
+      if (typeof params.onClick === 'string') {
+          // This handles string-based handlers coming from the server (GS)
+          clickHandler = eval('(' + params.onClick + ')'); 
+      }
+      html_ref.onclick = () => clickHandler();
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.HEADER: {
+      html_ref = document.createElement("h1");
+      html_ref.className = "header";
+      html_ref.innerHTML = params.content;
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.TEXT: {
+      
+      switch (params.textType) {
+
+        case TextType.H1:
+        html_ref = document.createElement("h1");
+        break;
+
+        case TextType.H2:
+        html_ref = document.createElement("h2");
+        break;
+
+        case TextType.H3:
+        html_ref = document.createElement("h3");
+        break;
+
+        case TextType.P:
+        html_ref = document.createElement("p");
+        break;
+
+        default:
+        html_ref = document.createElement("p");
+        break;
+        
+      }
+      const textAlign = params.textAlign || "";
+      html_ref.className = "text";
+      html_ref.style = `${textAlign}`;
+      html_ref.innerHTML = parseTextMarkdown(params.content.trim());
+      if (params.style) {
+        html_ref.setAttribute("style", params.style);
+      }
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.INPUT: {
+      if (params.allowMention == true) {
+        html_ref = document.createElement("div");
+        new MentionComposeEmbed(container, html_ref, params)
+        // const mentionBox_ref = document.createElement("div");
+        // mentionBox_ref.className = "mention-box"
+        // mentionBox_ref.style.position = "absolute";
+        // mentionBox_ref.style.display = "none";
+        // container.appendChild(mentionBox_ref);
+
+        // google.script.run
+        //   .withSuccessHandler((userMentionData) => {
+        //     html_ref.oninput = function() {
+        //       checkForMention({ 
+        //         ref: html_ref, 
+        //         mentionList: userMentionData, 
+        //         mentionBox_ref: mentionBox_ref 
+        //       });
+        //     };
+        //   })
+        //   .getAllUserMentionData(); 
+
+        html_ref.className = "user-text-input";
+        html_ref.placeholder = params.placeholder;
+        html_ref.contentEditable = true;
+        break;
+      }
+      switch (params.inputType) {
+        case InputType.TEXT_AREA:
+          html_ref = document.createElement("textarea");
+          html_ref.placeholder = params.placeholder;
+          html_ref.className = "user-text-input";
+          html_ref.type = "text";
+        break;
+
+        case InputType.CHECKBOX: 
+          html_ref = document.createElement("div");
+          html_ref.marginTop = ".5em";
+          html_ref.marginBottom = ".5em";
+
+          // create hidden checkbox
+          const checkbox_ref = document.createElement("input");
+          checkbox_ref.type = "checkbox";
+          checkbox_ref.id = `${params.id}-checkbox`;
+          checkbox_ref.className = "styled-checkbox";
+
+          // create displayed checkbox
+          const checkbox_Label_ref = document.createElement("label");
+          checkbox_Label_ref.htmlFor = `${params.id}-checkbox`
+          checkbox_Label_ref.id = `${params.id}-label`;
+          checkbox_Label_ref.className = "menu-item checkbox-label";
+
+          // checkbox
+          const checkbox_Label_Span_ref = document.createElement("span");
+          checkbox_Label_Span_ref.id = `${params.id}-label-span`;
+          checkbox_Label_Span_ref.className = "checkbox-indicator";
+
+          // attach checkbox
+          checkbox_Label_ref.appendChild(checkbox_Label_Span_ref);
+
+          // attach label text
+          const labelText = document.createTextNode(params.label);
+          checkbox_Label_ref.appendChild(labelText);
+
+          html_ref.appendChild(checkbox_ref); 
+          html_ref.appendChild(checkbox_Label_ref);
+        break;
+
+        default:
+          console.error(`Cant create Input UI of type ${params.inputType}`);
+
+        return;
+      }
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+    case UIElementType.IMAGE: { 
+      html_ref = document.createElement("img");
+      html_ref.src = params.imageUrl;
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+    
+
+    case UIElementType.LINE: {
+      html_ref = document.createElement("div");
+      html_ref.className = "line";
+      thisFunc.withSuccessHandler(html_ref);
+      break;
+    }
+
+  }
+  if (!html_ref) {
+    thisFunc.withFailureHandler();
+    return null;
+  }
+  html_ref.style += (params.style) ? (" " + params.style) : "";
+  html_ref.id += (params.id) ? (params.id) : `${type}Element`;
+  html_ref.className += (params.className) ? (" " + params.className) : "";
+  container.appendChild(html_ref);
+  thisFunc.withEndHandler(html_ref);
+  return html_ref;
+}
+  
+function fillContainerWith(Args = {}) {
+  // has the specific with handlers and variables of this function
+  const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+  // object destructuring, extracts variables, then extracts value from Args, if none use default
+  let {  
+    container = undefined, 
+    elements = {},
+  } = thisFunc; 
+
+  container.innerHTML = "";
+  elements.forEach((element, index) => {
+    createUIElement({ 
+      type: element.type, 
+      container: container, 
+      params: element 
+    });
+  });
+}
+
+function setMenuUI (uiGroup) {
+  menuContainer.innerHTML = "";
+  console.log("calling set menu");
+  requestMenuUI({
+    // if attempting fallback do fallback boot msg, otherwise use default by sending empty list []
+    bootMessage_start: (!attemptingFallback) ? null : [ "SYSTEM FILE LOAD FAILURE", "ATTEMPTING UI FALLBACK..."],
+    bootMessage_success: (!attemptingFallback) ? null : ["FALLBACK SUCCESS", "SYSTEM FILES RETRIEVED...", "READY."],
+    bootMessage_fail: (!attemptingFallback) ? null : [ "ERROR CRITICAL SET MENU UI FAILURE", "FALLBACK ATTEMPT FAILED", "PLEASE RELOAD THE SITE"],
+    uiGroup: uiGroup,
+    withSuccessHandler: (page) => {
+      attemptingFallback = false;
+      menuUINameFallback = uiGroup;
+      google.script.history.push(null, { "page": uiGroup }, null); // set URL param
+      fillContainerWith({ container: menuContainer, elements: page });
+    },
+    withFailureHandler: (error) => {
+      if (!attemptingFallback && menuUINameFallback) {
+        bootMessage.add({ bootMessage: [ "SET MENU UI FAILURE", `ERROR: ${error}`,  "ATTEMPTING UI FALLBACK..."] });
+        attemptingFallback = true;
+        setMenuUI(menuUINameFallback);
+      } else {
+        google.script.history.push(null, { "page": UIGroup.HUB }, null); // set URL param to hub
+        console.error("ERROR CRITICAL SET MENU UI FAILURE - FALLBACK ATTEMPT FAILED - PLEASE RELOAD THE SITE");
+        bootMessage.add({ bootMessage: [ "ERROR CRITICAL SET MENU UI FAILURE", "FALLBACK ATTEMPT FAILED", `ERROR: ${error}`,  "PLEASE RELOAD THE SITE"] });
+      }
+    }
+  });
+}
+
+// ui request menu function 
+function requestMenuUI (Args = {}) {
+  // has the specific with handlers and variables of this function
+  const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+  // object destructuring, extracts variables, then extracts value from Args, if none use default
+  let {  
+    uiGroup,  
+    bootMessage_start, 
+    bootMessage_success, 
+    bootMessage_fail, 
+  } = thisFunc; 
+  thisFunc.withStartHandler();
+
+  bootMessage_start = (bootMessage_start) ? bootMessage_start : ["INITIALIZING...", "LOADING SYSTEM FILES..."];
+  bootMessage_success = (bootMessage_success) ? bootMessage_success : ["SYSTEM FILES RETRIEVED...", "READY."]; 
+  bootMessage_fail = (bootMessage_fail) ? bootMessage_fail : ["ERROR...", "SYSTEM FILE LOADING FAILED"];
+
+  bootMessage.add({ bootMessage: bootMessage_start });
+  
+  google.script.run
+    .withFailureHandler((error) => {
+      thisFunc.withFailureHandler();
+      bootMessage.add({ bootMessage: [ ...bootMessage_fail, `ERROR: ${error}`] });
+    })
+    .withSuccessHandler((page)=>{
+      bootMessage.addThenClear({ 
+        bootMessage: bootMessage_success, 
+        withSuccessHandler: () => {
+          thisFunc.withSuccessHandler(page);
+        }}
+      );
+    })
+    .requestUI(uiGroup);
+
+  thisFunc.withEndHandler();
+}
+
+  
+/* new better boot manager */
+bootMessage = {
+  addThenClear(Args = {}) {
+    // has the specific with handlers and variables of this function
+    const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+    // object destructuring, extracts variables, then extracts value from Args, if none use default
+    let {  
+      bootMessage = [],
+    } = thisFunc; 
+
+    thisFunc.withStartHandler();
+
+    const lines = (bootMessage.length != 0) ? bootMessage : [];
+    lines.forEach((text, i) => {
+      setTimeout(() => {
+        const p = document.createElement("p");
+        p.className = "boot-line";
+        p.textContent = "> " + text;
+        bootContainer.appendChild(p);
+        bootContainer.scrollTop = bootContainer.scrollHeight;
+      }, i * sec_to_ms(.5));
+    });
+    setTimeout(() => {
+      bootContainer.innerHTML = "";
+      thisFunc.withSuccessHandler();
+    }, lines.length * sec_to_ms(.5) + sec_to_ms(.2));
+
+    thisFunc.withEndHandler();
+  },
+  add(Args = {}) {
+    // has the specific with handlers and variables of this function
+    const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+    // object destructuring, extracts variables, then extracts value from Args, if none use default
+    let {  
+      bootMessage = [],
+    } = thisFunc; 
+
+    thisFunc.withStartHandler();
+
+    const lines = (bootMessage.length != 0) ? bootMessage : [];
+    lines.forEach((text, i) => {
+      setTimeout(() => {
+        const p = document.createElement("p");
+        p.className = "boot-line";
+        p.textContent = "> " + text;
+        bootContainer.appendChild(p);
+        bootContainer.scrollTop = bootContainer.scrollHeight;
+      }, i * sec_to_ms(.5));
+    });
+    setTimeout(() => {
+      thisFunc.withSuccessHandler();
+    }, lines.length * sec_to_ms(.5) + sec_to_ms(.2));
+
+    thisFunc.withEndHandler();
+  },
+  clear() {
+    bootContainer.innerHTML = "";
+  }
+}
+
+
+/*****/
+
+
+
+</script>
