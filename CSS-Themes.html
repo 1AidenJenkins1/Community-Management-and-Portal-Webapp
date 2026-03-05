@@ -1,0 +1,55 @@
+<!-- CSS-Themes.html -->
+<style>
+  
+:root {
+  /* primary color set (green) */
+  --primary: #00ff00;
+  --primary-soft: rgba(0,255,0,0.4);
+  --primary-bg: rgba(0,255,0,0.1);
+  --border: rgba(0,255,0,0.5);
+  --shadow: rgba(0,255,0,0.3);
+  --text: #00ff00;
+  --text-soft: rgba(0,255,0,0.7);
+  --background: black;
+  --screen-bg: rgba(0,0,0,0.9);
+}
+
+/* WHITE THEME */
+body.white {
+  --primary: #ffffff;
+  --primary-soft: rgba(255,255,255,0.4);
+  --primary-bg: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.5);
+  --shadow: rgba(255,255,255,0.18);
+  --text: #ffffff;
+  --text-soft: rgba(255,255,255,0.7);
+  --background: #111;
+  --screen-bg: rgba(25,25,25,0.95);
+}
+
+/* BLUE THEME - BLACK BACKGROUND */
+body.blue {
+  --primary: #00bfff;          /* bright blue glow */
+  --primary-soft: rgba(0,191,255,0.4);
+  --primary-bg: rgba(0,191,255,0.08);
+  --border: rgba(0,191,255,0.5);
+  --shadow: rgba(0,191,255,0.2);
+  --text: #00bfff;
+  --text-soft: rgba(0,191,255,0.7);
+  --background: black;         /* solid black background */
+  --screen-bg: rgba(0,0,0,0.95); /* screen box background */
+}
+
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: monospace;
+}
+</style>
