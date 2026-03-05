@@ -1,0 +1,69 @@
+<!-- JS-Main.html -->
+<script id="JS-Main">
+function pageStartUp(UrlLocation) {
+  google.script.history.setChangeHandler(function(eventObject) {
+    let page = eventObject.location.parameter.page;
+    console.log('User navigated to:', page);
+    setMenuUI(page);
+  });
+
+  setTheme("blue");
+  const containerElement = document.getElementById('menu');
+  let userData = null;
+  let page_Data = null;
+  let loaded = false;
+  // let sent_userData_bootmsg = false;
+  // let sent_page_Data_bootmsg = false;
+
+  // bootMessage.add({ bootMessage: ["LOADING USER DATA..."] });
+  google.script.run
+    .withSuccessHandler((loadedUserData)=>{
+      userData = loadedUserData;
+    })
+    .getUserData({ writeLastActiveDate: true }); // REQUEST USER DATA
+
+  // bootMessage.add({ bootMessage: ["LOADING PAGE DATA..."] });
+  let pageToOpen = UIGroup.HUB;
+  if (UrlLocation.parameter.page) {
+    pageToOpen = UrlLocation.parameter.page;
+  } else {
+    google.script.history.push(null, { "page": pageToOpen }, null); // set URL param
+  }
+
+  requestMenuUI({
+    uiGroup: pageToOpen,
+    withSuccessHandler: (page) => {
+      page_Data = page;
+    }
+  });
+  
+
+  // wait until version, user, and page is loaded to continue
+  const checkForLoad = setInterval(()=>{
+    console.log("CHECKING FOR DATA LOADED");
+    // if (userData && !sent_userData_bootmsg) { bootMessage.add({ bootMessage: ["USER DATA LOADED."] }); sent_userData_bootmsg = true; }
+    // if (page_Data && !sent_page_Data_bootmsg) { bootMessage.add({ bootMessage: ["PAGE DATA LOADED."] }); sent_page_Data_bootmsg = true; }
+    if (userData && page_Data) {
+      console.log("DATA LOADED!");
+      setUserDisplay(userData) // DISPLAY USER DATA
+      fillContainerWith({ container: menuContainer, elements: page_Data }); // DISPLAY HUB PAGE
+      loaded = true; // set page loaded to true
+      clearInterval(checkForLoad); // end check
+    }
+  }, sec_to_ms(.5));
+
+  setTimeout(() => {
+    if (!loaded) {
+      clearInterval(checkForLoad);
+      console.error("ERROR LOAD TIMEOUT: loading took longer then 30 seconds");
+      bootMessage.add({ bootMessage: ["ERROR: load timeout, loading took longer then 30 seconds"] }); 
+    }
+  }, sec_to_ms(30));
+}
+
+window.onload = function() {
+  google.script.url.getLocation(function(UrlLocation) {
+    pageStartUp(UrlLocation);
+  });
+};
+</script>
