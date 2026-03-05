@@ -1,0 +1,32 @@
+<!-- JS-ActivityDetector.html -->
+<script id="JS-ActivityDetector">
+  let userIsActive = false;
+  let inactivityTimer;
+  const inactivityTimeout = 5000; // 5 seconds
+
+  function handleActivity() {
+    if (!userIsActive) {
+      userIsActive = true;
+      console.log("User is now active (mouse movement detected).");
+    }
+    // Clear the old timer and set a new one
+    // every time a mousemove event is detected.
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => {
+      userIsActive = false;
+      console.log("User is now inactive (no mouse movement for 5s).");
+    }, inactivityTimeout);
+  }
+
+  // Add the mousemove event listener to the document
+  // This listens for mouse activity anywhere on the page
+  document.addEventListener('mousemove', handleActivity);
+
+  // Also listen for a change in window focus, as a user
+  // could leave the page and return without moving the mouse
+  window.addEventListener('focus', () => {
+    if (!userIsActive) {
+      handleActivity();
+    }
+  });
+</script>
