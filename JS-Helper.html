@@ -1,0 +1,137 @@
+<!-- JS-Helper.html -->
+<script id="JS-Helper">
+// helper variables / functions / notes for the other JS files
+
+/*
+
+BASIC FUNCTION FORMAT:
+
+function BLANK() {
+  // has the specific with handlers and variables of this function
+  const thisFunc = { ...EMPTY_CALLBACKS, ...Args }; 
+  // object destructuring, extracts variables, then extracts value from Args, if none use default
+  const {  
+  container = undefined, 
+  elements = {},
+  } = thisFunc;
+  thisFunc.withStartHandler();
+
+  // remove the try, catch, finally, as needed
+  try {    
+    // main code here
+
+
+
+
+
+    thisFunc.withSuccessHandler();
+  } 
+  catch (error) {
+    // error / fail code here
+    console.error(error);
+    thisFunc.withFailureHandler(error);
+  } 
+  finally {
+    // code that will always run on end here
+    thisFunc.withEndHandler();
+  }
+  return;
+}
+
+*/
+
+function rankToAbb(rank) {
+  // Find the key in the object that matches
+  const rankKey = Object.keys(RANK).find(key => RANK[key] == rank);
+  
+  // If a key is found, use that key to look up the abbreviation.
+  if (rankKey && RANK_ABBREVIATION[rankKey]) {
+    return RANK_ABBREVIATION[rankKey];
+  }
+  
+  return null; // Return null if no match is found
+}
+
+function abbToRank(abb) {
+  // Find the key in the object that matches
+  const abbKey = Object.keys(RANK_ABBREVIATION).find(key => RANK_ABBREVIATION[key] == abb);
+
+  // If a key is found, use that key to look up the rank.
+  if (abbKey && RANK[abbKey]) {
+    return RANK[abbKey];
+  }
+  
+  return null; // Return null if no match is found
+}
+
+function divisionToAbb(division) {
+  // Find the key in the object that matches
+  const divisionKey = Object.keys(DIVISION).find(key => DIVISION[key] == division);
+
+  // If a key is found, use that key to look up.
+  if (divisionKey && DIVISION_ABBREVIATION[divisionKey]) {
+    return DIVISION_ABBREVIATION[divisionKey];
+  }
+  
+  return null; // Return null if no match is found
+}
+
+function abbToDivision(abb) {
+  // Find the key in the object that matches
+  const abbKey = Object.keys(DIVISION_ABBREVIATION).find(key => DIVISION_ABBREVIATION[key] == abb);
+
+  // If a key is found, use that key to look up.
+  if (abbKey && DIVISION[abbKey]) {
+    return DIVISION[abbKey];
+  }
+  
+  return null; // Return null if no match is found
+}
+
+function getInputById(id) {
+  const inputField = document.getElementById(id);
+  
+  if (inputField) {
+    
+    // Check if the element is a checkbox/radio
+    if (inputField.type === "checkbox" || inputField.type === "radio") {
+      // Return a boolean: true if checked, false otherwise
+      return inputField.checked;
+    }
+
+    // Otherwise, assume it is a text input, textarea, select, etc.
+    const input = inputField.value.trim();
+    if (input === "") {
+      return null;
+    }
+    return input;
+
+  }
+  // Throws error if the ID is not found in the DOM
+  throw new Error(`No element with id ${id} found`);
+}
+
+// turn seconds to milliseconds
+function sec_to_ms(seconds) {
+  return seconds * 1000;
+}
+
+// helps with text markdown idk how this works ill look into it
+function parseTextMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')   // bold --> **
+    .replace(/\*(.*?)\*/g, '<i>$1</i>')       // italics --> *
+    .replace(/\n\s*/g, '<br>');               // new lines --> /n
+}
+
+
+// empty callbacks to avoid errors with missing callbacks
+// can be expanded as needed, but should not be removed
+const EMPTY_CALLBACKS = {
+  withStartHandler: () => {},
+  withEndHandler: () => {},
+  withSuccessHandler: () => {}, 
+  withFailureHandler: () => {},
+}
+
+</script>
