@@ -1,0 +1,271 @@
+<!-- CSS-Menu.html -->
+<style>
+  
+@media (max-width: 480px) {
+  input, textarea, button, select {
+    font-size: 2em !important;
+  }
+}
+
+.screen {
+  max-height: 90vh;
+  overflow-y: auto;     
+  padding: 2em;
+  border-radius: 12px;
+  border: 4px solid var(--primary-soft);
+  box-shadow: 0 0 50px var(--shadow), inset 0 0 30px var(--primary-bg);
+}
+
+// Scrollbar
+.screen::-webkit-scrollbar {
+  width: 10px;      
+  height: 10px;    
+}
+
+/* Scrollbar track */
+.screen::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+}
+
+/* Scrollbar thumb */
+.screen::-webkit-scrollbar-thumb {
+  background-color: var(--primary);    /* thumb color */
+  border-radius: 6px;
+}
+
+/* Scrollbar thumb hover */
+.screen::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-soft);
+}
+
+.mention-menu {
+  margin: 1em auto;
+  max-height: 30vh;
+  transition: all 0.3s;
+  width: 100%;
+  max-width: 30vw;
+  box-sizing: border-box;
+  border: 2px solid var(--border);
+}
+
+.mention-item {
+  font-size: 1em;
+  border: .2em solid var(--primary-soft);
+  background:  var(--primary-bg);
+  color: var(--text);
+  padding: .2em;
+  margin-top: .1em;
+  margin-bottom: .1em;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: normal;
+}
+
+.menu-item {
+  border: .2em solid var(--primary-soft);
+  background: transparent;
+  color: var(--text);
+  padding: 1em;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: normal;
+}
+
+.menu-item:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.menu-item.active {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+  box-shadow: 0 0 20px var(--shadow), inset 0 0 20px var(--primary-bg);
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: var(--primary);
+}
+
+th, td {
+  
+  white-space: nowrap;    
+  overflow: hidden;         
+  text-overflow: ellipsis;  
+  text-align: left;
+  padding: 16px;
+}
+
+th {
+  position:sticky; 
+  top: 0; 
+  background-color: var(--background);
+}
+
+tr {
+  max-height: 1em;
+}
+
+tr:nth-child(odd) {
+  background-color: var(--primary-bg);
+}
+
+.sheetContainer {
+  max-height: 50vh;
+  overflow-y: auto; 
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: var(--primary);
+}
+
+// Scrollbar
+.sheetContainer::-webkit-scrollbar {
+  width: 10px;      
+  height: 10px;    
+}
+
+/* Scrollbar track */
+.sheetContainer::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+}
+
+/* Scrollbar thumb */
+.sheetContainer::-webkit-scrollbar-thumb {
+  background-color: var(--primary);
+  border-radius: 6px;
+}
+
+/* Scrollbar thumb hover */
+.sheetContainer::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-soft);
+}
+
+.boot-line {
+  color: var(--text);
+  font-size: 0.9em;
+  animation: pulse 0.7s infinite;
+}
+
+.status-bar {
+  border-top: .2em solid var(--border);
+  padding-top: 0.5em;
+  font-size: 0.8em;
+  color: var(--text-soft);
+  display: flex;
+  justify-content: space-between;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.scan {
+  position: absolute;
+  inset: 0;
+  /* replaced hard-coded rgba with the --primary-bg variable */
+  background: linear-gradient(to bottom, transparent, var(--primary-bg), transparent);
+  animation: scan 8s linear infinite;
+  pointer-events: none;
+}
+
+.flicker {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 50%, var(--primary-bg) 50%);
+  background-size: 100% 4px;
+  animation: flicker 0.15s infinite;
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.line {
+  width: 100%;
+  height: .2em;
+  margin-bottom: .5em;
+  margin-top: .5em;
+  background-color: var(--border);
+  pointer-events: none;
+}
+
+/* --- Additional CSS to style the checkbox as a menu-item --- */
+
+/* 1. Visually hide the actual input element */
+.styled-checkbox {
+  /* Using this technique keeps it accessible to screen readers */
+  display: none;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* 2. Apply menu-item styling to the label itself */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* 3. Create a custom visual indicator for the checkbox state */
+.checkbox-indicator {
+  /* This is the box that will appear checked */
+  display: block;
+  width: 1em;
+  height: 1em;
+  margin-right: 1em; /* Spacing between the box and the text */
+  border: .15em solid var(--primary-soft);
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+/* 4. Style the indicator when the *hidden* input is checked */
+.styled-checkbox:checked + .checkbox-label .checkbox-indicator {
+  background-color: var(--primary); /* Use primary color when checked */
+  border-color: var(--primary);
+}
+
+/* Add hover effects for the custom indicator */
+.checkbox-label:hover .checkbox-indicator {
+    border-color: var(--primary);
+}
+
+.profile-img {
+  border-radius: 50%;
+  margin: 2em;
+}
+
+.profile-container {
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  width:100%;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+</style>
