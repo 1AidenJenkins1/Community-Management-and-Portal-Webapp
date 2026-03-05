@@ -1,0 +1,482 @@
+/* GS-API-OAuth2-Discord.gs */
+/**
+ * ⚠️**DEPRECATED**⚠️
+ * - This will be removed in future versions 
+ * 
+ * look more into doPost to interact with discord server bots
+*/
+// function doPost(e) {
+//   try {
+//     const data = JSON.parse(e.postData.contents);
+//     if (data.token !== DISCORD_CLIENT_SECRET) {
+//       return ContentService.createTextOutput("Unauthorized");
+//     }
+
+//     // Log or process the data
+//     console.log(`Got data from Discord bot: ${JSON.stringify(data)}`);
+
+//     // // Example: store in a Google Sheet
+//     // const sheet = SpreadsheetApp.openById("YOUR_SHEET_ID").getSheetByName("Roles");
+//     // sheet.appendRow([new Date(), data.userId, data.username, data.roles.join(", ")]);
+
+//     return ContentService.createTextOutput("Success");
+//   } catch (err) {
+//     console.log(err);
+//     return ContentService.createTextOutput("Error: " + err);
+//   }
+// }
+
+// ====================================================================
+// AUTH
+// ====================================================================
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * - https://github.com/googlesamples/apps-script-oauth2#1-create-the-oauth2-service
+   * 
+   * Gets the service for Discord.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** AUTH
+   * 
+   * @return {OAuth2.Service} 
+   * Discord service.
+  */
+  function getDiscordService_() {
+    const discord_clientId = SCRIPT_PROPERTIES_SERVICE.getProperty("DISCORD_CLIENT_ID");
+    const discord_clientSecret = SCRIPT_PROPERTIES_SERVICE.getProperty("DISCORD_CLIENT_SECRET");
+    return OAuth2.createService(`discord`)
+    .setAuthorizationBaseUrl(`https://discord.com/oauth2/authorize`)
+    .setTokenUrl(`https://discord.com/api/oauth2/token`)
+    .setClientId(discord_clientId)
+    .setClientSecret(discord_clientSecret)
+    .setCallbackFunction(`authCallback`)
+    .setPropertyStore(PropertiesService.getUserProperties())
+    .setScope(`identify email`);
+  }
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * 
+   * Will provide a discord login link.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** AUTH
+  */
+  function showAuthLink() {
+    let service = getDiscordService_();
+    if (!service.hasAccess()) {
+      let authorizationUrl = service.getAuthorizationUrl();
+      // show a simple HTML page with the link (open in new tab)
+      let html = HtmlService.createHtmlOutput(`<a href="` + authorizationUrl + `" target="_blank">Sign in with Discord</a><p>After authorizing, close the tab and return.</p>`);
+      SpreadsheetApp.getUi().showModalDialog(html, `Discord Sign-In`);
+    } else {
+      SpreadsheetApp.getUi().alert(`Already authorized.`);
+    }
+  }
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * 
+   * Will fetch the discord user instance of the requesting user.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** AUTH
+   * 
+   * @return {Oauth2.service.AuthorizationUrl} 
+   * Discord service auth url.
+  */
+  function getAuthUrl() {
+    let Service = getDiscordService_();
+    if (!Service.hasAccess()) {
+      return Service.getAuthorizationUrl();
+    }
+    return null; // already logged in
+  }
+
+  /**
+   * **Documentation:** 
+   * 
+   * Discord will redirect here after user authorizes
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** AUTH
+   * 
+   * @return {HtemlService.htmlOutput} 
+   * Close window html msg.
+  */
+  function authCallback(request) {
+    let service = getDiscordService_();
+    service.handleCallback(request);
+
+    return HtmlService.createHtmlOutput(`
+      <script>
+        if (window.opener) {
+          window.opener.postMessage("authorized", "*");
+          window.close();
+        } else {
+          document.body.innerText = "USPA discord login complete. Please close this window.";
+        }
+      </script>
+    `);
+  }
+
+// ====================================================================
+// FETCH
+// ====================================================================
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * 
+   * Will fetch the discord user instance of the requesting user.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** FETCH
+   * 
+   * @return {object} 
+   * Discord user instance.
+  */
+  function fetchDiscordUser_() {
+    let service = getDiscordService_();
+    if (!service.hasAccess()) {
+      console.log(`No access. Run showAuthLink() and authorize first.`);
+      return;
+    }
+    let url = `https://discord.com/api/users/@me`;
+    let options = {
+      method: `get`,
+      headers: {
+        Authorization: `Bearer ` + service.getAccessToken()
+      },
+      muteHttpExceptions: true
+    };
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    console.log(`HTTP ${responseCode}`);
+    console.log(response.getContentText());
+
+    // parse JSON if 200
+    if (responseCode == 200) {
+      let user = JSON.parse(response.getContentText());
+      // user will contain id, username, discriminator, avatar, and email if email scope was granted
+      console.log(user);
+      return user;
+    } else {
+      console.log(`Error: ` + response.getContentText());
+      // If token expired, you can refresh via the library automatically by calling getAccessToken()
+    }
+  }
+
+
+// ====================================================================
+// MANAGE
+// ====================================================================
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * 
+   * Will check if the requesting user has given the discord service access.
+   * Will be renamed soon.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** MANAGE
+   * 
+   * @return {boolen} 
+   * If the current user has given access.
+  */
+  function checkAccess() {
+    let service = getDiscordService_();
+    return service.hasAccess();
+  }
+
+  /**
+   * **Documentation:** 
+   * - https://discord.com/developers/docs/topics/oauth2
+   * 
+   * Will clear the stored requesting user information and token.
+   * Will be renamed soon.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** MANAGE
+   * 
+   * @return {boolen} 
+   * If the current user has been reset. (always true at the moment)
+  */
+  function resetDiscordAuth() {
+    let service = getDiscordService_();
+    service.reset(); // clears stored token for the current user
+    return true;
+  }
+
+// ====================================================================
+// DISPLAY
+// ====================================================================
+
+  /**
+   * **Documentation:** 
+   * 
+   * Formats user information into a avatar url.
+   * Subject to change.
+   * - **Version:** *PRE-ALPHA 1.02.02 (12/2/2025)*
+   * - **File:** GS-API-OAuth2-Discord.gs
+   * - **Section:** DISPLAY
+   * 
+   * @param {string} userId 
+   * The Discord user`s id.
+   * 
+   * @param {string} avatarId 
+   * The avatar hash string from the user instance.
+   * 
+   * @param {number} [size=256] 
+   * The desired size
+   * 
+   * @returns {string} 
+   * The full Discord avatar URL.
+  */
+  function getDiscordAvatarUrl(userId, avatarId, size = 256) {
+    if (!userId || !avatarId) {
+      // return a default avatar URL if data is missing
+      return `https://cdn.discordapp.com/embed/avatars/0.png`; 
+    }
+
+    // Check if the avatar is animated (starts with `a_`)
+    const extension = avatarId.startsWith(`a_`) ? `gif` : `png`;
+
+    // Construct the URL
+    const baseUrl = `https://cdn.discordapp.com/avatars/${userId}/${avatarId}.${extension}`;
+
+    // Append the size parameter
+    return `${baseUrl}?size=${size}`;
+  }
+
+// ====================================================================
+// MESSAGING
+// ====================================================================
+
+  /**
+   * NONE OF THIS CODE IS COMMENTED
+   * THIS WAS EARLY TESTING
+   * EVERYTHING BELOW IS SUBJECT TO CHANGE
+  */
+
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function sendDiscordMessage(url, content) {
+    let response = UrlFetchApp.fetch(url, content);
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function getDiscordTimestamp(month, day, hour, min) {
+    // Get the date and time
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    const timestamp = new Date(year, month, day, hour, min);
+
+    // to ms
+    const unixTimestampMs = timestamp.getTime();
+
+    // to seconds
+    const unixTimestampSeconds = Math.floor(unixTimestampMs / 1000);
+
+    return `<t:${unixTimestampSeconds}:R>`; // Example: long date/time format
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function getAsDiscordPing(userId) {
+    return "<@$" + userId + ">";
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function createMessage(message) {
+      let content = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "MyDiscordBot/1.0",
+        },
+        payload: JSON.stringify({ content: message }),
+        muteHttpExceptions: true
+      };
+      sendDiscordMessage("REMOVED FOR GITHUB", content);
+
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  // function createMessageContent_Embed(name, reason) {
+  //   let embed = {
+  //     username: "Automated Freeroam Request",
+  //     avatar_url: "https://drive.google.com/uc?export=view&id=1Bz2ny8qfrWlQhTaFbAaEM-Jg-r1XhziT", // fixed for direct image display
+  //     embeds: [{
+  //       title: "**Freeroam Request**",
+  //       description: "This is a description of the request.",
+  //       color: 15258703,
+  //       author: {
+  //         name: "Automated Freeroam Request",
+  //         icon_url: "https://drive.google.com/uc?export=view&id=1Bz2ny8qfrWlQhTaFbAaEM-Jg-r1XhziT"
+  //       },
+  //       fields: [
+  //         {
+  //           name: "UserName:",
+  //           value: name,
+  //           inline: false
+  //         },
+  //         {
+  //           name: "Ping:",
+  //           value: "<@908915616478531595>",
+  //           inline: true
+  //         },
+  //         {
+  //           name: "Reason:",
+  //           value: reason,
+  //           inline: false
+  //         }
+  //       ],
+  //       footer: {
+  //         text: "Generated automatically"
+  //       },
+  //       timestamp: new Date().toISOString()
+  //     }]
+  //   };
+    
+  //   return embed;
+  // }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function createMessageContent_Message(message) {
+
+    let content = {
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      payload: JSON.stringify({content: message}),
+      muteHttpExceptions: true
+    };
+
+    return content;
+
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function createMessageContent_FreeroamRequest(name, reason) {
+    let content = {
+    contentType: "application/json",
+    muteHttpExceptions: true,
+    method: "post",
+    payload: JSON.stringify({
+      username: "Automated Freeroam Request",
+      avatar_url: "https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg",
+      embeds: [{
+          author:{
+            name: "",
+          },
+    title: "**Freeroam Request**",
+    color: 15258703,
+      fields: [
+        {
+          name: "UserName:",
+          value: name,
+          inline: false
+        },
+        {
+          name: "Ping:",
+          value: "<@908915616478531595>",
+          inline: true
+        },
+          {
+          name: getDiscordTimestamp(9, 18, 21, 0),
+          value: reason
+        }
+        ],
+        footer: {
+          text: ""
+        }
+      }] 
+    }),
+  
+  };
+    sendDiscordMessage("REMOVED FOR GITHUB", content);
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function createMessageContent_EventAnnouncement(host, name, type, time, role) {
+    let content = {
+      contentType: "application/json",
+      muteHttpExceptions: true,
+    "method": "post",
+    "payload": JSON.stringify({
+      "username": "Automated Event Announcement",
+      "avatar_url": "https://drive.google.com/file/d/1Bz2ny8qfrWlQhTaFbAaEM-Jg-r1XhziT/view?usp=sharing",
+      "embeds": [{
+        "author":{
+          "name": "Event Announcement",
+        },
+      "title": "**Event**",
+        "color": 15258703,
+        "fields": [
+          {
+            "name": "Host:",
+            "value": host,
+            "inline": false
+          },
+          {
+            "name": "Type: ",
+            "value": type + " \"" + name + "\"",
+            "inline": true
+          },
+          {
+            "name": "Time:",
+            "value": time,
+            "inline": true
+          },
+          {
+            "name": "Role notification: ",
+            "value": role,
+            "inline": true
+          }
+          ],
+          "footer": {
+            "text": ""
+          }
+      }] 
+      }),
+  
+    };
+  }
+
+  /**
+   * ⚠️**DEPRECATED**⚠️
+   * - This will be removed in future versions
+  */
+  function logRedirectUri() {
+    console.log(getDiscordService_().getRedirectUri());
+  }
