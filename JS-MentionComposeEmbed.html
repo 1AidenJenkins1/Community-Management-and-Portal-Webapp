@@ -1,0 +1,61 @@
+<!-- JS-Helper.html -->
+<script id="JS-Mention">
+  class MentionComposeEmbed {
+    #container_ref
+    #target_ref
+    #addButton_ref
+    #cancelButton_ref
+    #mentionMenu_ref
+
+    constructor(container, target, params) {
+      this.#container_ref = container;
+      this.#target_ref = target
+
+      this.#addButton_ref = createUIElement({ 
+        type: UIElementType.BUTTON,
+        container: this.#container_ref,
+        params: {
+          id: `add-mention-${params.id}`, 
+          label: "ADD MENTION", 
+          description: "Add user mention to textbox below", 
+          Access: params.Access, 
+          onClick: () => this.showMenu(),
+        }
+        
+      });
+      this.#cancelButton_ref = createUIElement({ 
+        type: UIElementType.BUTTON,
+        container: this.#container_ref,
+        params: {
+          id: `cancel-mention-${params.id}`, 
+          label: "CLOSE MENTION", 
+          description: "Close user mention menu", 
+          Access: params.Access, 
+          onClick: () => this.hideMenu(),
+        }
+        
+      });
+      this.#mentionMenu_ref = document.createElement("div");
+      this.#mentionMenu_ref.style = `
+        
+      `;
+      this.#container_ref.appendChild(this.#mentionMenu_ref);
+
+      this.hideMenu();
+    }
+
+    showMenu() {
+      this.#mentionMenu_ref.style.height = `auto`;
+      this.#mentionMenu_ref.style.padding = `1em`;
+      this.#addButton_ref.style.display = "none";
+      this.#cancelButton_ref.style.display = "block";
+    }
+
+    hideMenu() {
+      this.#mentionMenu_ref.style.height = `0%`;
+      this.#mentionMenu_ref.style.padding = `0em`;
+      this.#addButton_ref.style.display = "block";
+      this.#cancelButton_ref.style.display = "none";
+    }
+  }
+</script>
