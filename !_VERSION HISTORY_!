@@ -1,0 +1,299 @@
+/* !_VERSION HISTORY_!.gs */
+/**
+ * This is just used to display the version history easily i will add JSDoc for this func later
+ */
+function createVersionHistoryElement_(Args = {}) {
+  const {
+    versionId,
+    releaseDate,
+    description,
+  } = Args;
+  return VersionHistoryElement = 
+  {
+    type: UIElementType.CONTAINER, id:`version-history-${versionId}-textBox`,
+    Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] } ,
+    content: [
+      { 
+        type: UIElementType.TEXT, textType: TextType.H1, id: "Version-Header", 
+        Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        content: versionId, 
+      },
+      { 
+        type: UIElementType.TEXT, textType: TextType.H3, id: "Version-date", 
+        Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        content: releaseDate, 
+      },
+      { 
+        type: UIElementType.TEXT, textType: TextType.P, id: "Version-description", 
+        Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        content: description, 
+      }
+    ]
+  }
+}
+
+let VersionHistory = 
+  [
+    { 
+      type: UIElementType.TEXT, textType: TextType.H3, id: "text-info-credits", 
+      Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+      content: `
+        Hello! this is the version history for the USPA web portal.
+
+        CREDITS:
+        Website created by Gamealicious (mr_meme27)
+        Special thanks to paxishtar, Forsaken Bennie, and Blaze
+        for their contirbutions and support in site development
+      `, 
+    },
+    {
+      type: UIElementType.CONTAINER, id:"version-history-textBox", className:"textBox",
+      Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] } ,
+      content: [
+        // public release of the webapp, updates on the way! <-- use for beta 1.00.00
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "01/16/26",
+          description: `
+            PRE-ALPHA
+            1.02.04
+            -
+            TLDR: Bugfixes, minor tweaks, new page and button
+            -
+            **---BUGFIXES---**
+            -
+            Script Change: Carousel embed empty display bug fixed (no back button on empty display)
+            Script Change: Fixed sheet embed complete failure (caused by variable naming changes)
+            Script Change: Fixed join request create, accept, and deny failure to modify data (removed broken methods of sheet service API and implimented new)
+            Page Change: Fixed sheet member archive complete failure (caused by variable naming changes)
+            Page Change: Fixed logistics archive complete failure (caused by variable naming changes)
+            -
+            **---TWEAKS---**
+            -
+            Page Change: Version history information tweaks (added the word "removed" to version 1.02.03 release to better reflect page changes)
+            Page Change: Added please wait message to join request manager
+            Page Change: Added boot container messages to join request manager
+            -
+            **---NEW---**
+            -
+            Page Added: webportal information (shows information about the webportal, for google verification)
+            Button Added: privacy policy link (link to site privacy policy)
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "01/6/26",
+          description: `
+            PRE-ALPHA
+            1.02.03
+            -
+            TLDR: UI changes and script changes.
+            -
+            **---BUGFIXES---**
+            -
+            -
+            **---TWEAKS---**
+            -
+            Page Change: Temporary removal of pages dependent on google drive document API, until new implementation is complete (group info pages removed)
+            Page Change: Version history information tweaks (changed wording for version 1.02.02 release to better reflect changes)
+            Page Change: Version history information tweaks (fixed missing version 1.01.00 release)
+            Script Change: Service account and sheet managing API redone (moved functions into a static class)
+            Script Change: UI & URL sync (UI will now load based off the URL)
+            -
+            **---NEW---**
+            -
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "12/15/25",
+          description: `
+            PRE-ALPHA
+            1.02.02
+            -
+            TLDR: Temp bugfixes and script changes
+            -
+            **---BUGFIXES---**
+            -
+            Script Change: Temporary sheet display fix (fixed unformatted cells, temp fix will be improved later)
+            -
+            **---TWEAKS---**
+            -
+            Page Change: Version history information tweaks (added more detail to version 1.02.01 release TLDR information)
+            Script Change: User rank abbreviation naming tweaks (changed abbreviation such as "ENL" to [E-1])
+            Script Change: User security data storage tweaks (changed how security data is stored in a user instance)
+            Script Change: Complete server side script comment overhaul using the JSDoc format
+            -
+            **---NEW---**
+            -
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "12/1/25",
+          description: `
+            PRE-ALPHA
+            1.02.01
+            -
+            TLDR: Version history page changes, script changes, and script optimizations
+            -
+            **---BUGFIXES---**
+            -
+            -
+            **---TWEAKS---**
+            -
+            Script Change: Optimized sheet loading (used cache to reduce API calls)
+            Script Change: Optimized User data loading (used cache to reduce API calls)
+            Script Change: User data naming tweaks (changed data names to be more detailed)
+            Page Change: Version history style tweaks (made individual changes much more clear by adding types)
+            Page Change: Version history style tweaks (added headers detailing the type of changes below)
+            Page Change: Version history information tweaks (added more detail to 1.02.00 release information)
+            Page Change: Version history information tweaks (changed details of 1.01.01 release information)
+            Page Change: Version history style tweaks (removed dividers "<--->")
+            -
+            **---NEW---**
+            -
+            Script Change: Intigrated script cache service (reduces API calls)
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "11/20/25",
+          description: `
+            PRE-ALPHA
+            1.02.00
+            -
+            TLDR: Update to script, webapp permissions, user protection, and version history page
+            -
+            **---BUGFIXES---**
+            -
+            -
+            **---TWEAKS---**
+            -
+            Script Change: App Script project now apart of a Google Cloud Project (GCP) (Steps taken to verify webapp) 
+            Security Change: Set Oauth scopes (site can now only access defined files through service account for user protection)
+            Page Change: Version history wording tweaks (changed "USPA webapp" to "USPA web portal")
+            Page Change: Version history wording tweaks (changed wording of Pre-Alpha release)
+            Page Change: Version history information tweaks (added more information to each change bullet point)
+            Page Change: Version history style tweaks (added dividers "<--->" for TLDR and information sections)
+            -
+            **---NEW---**
+            -
+            Script Change: Intigrated service account and sheet managing API
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "11/18/25",
+          description: `
+            PRE-ALPHA
+            1.01.01
+            -
+            TLDR: Bugfixes, tweaks, and new page
+            -
+            **---BUGFIXES---**
+            -
+            Bugfix: join request submission failure (issues with accessing sheet to fill request)
+            -
+            **---TWEAKS---**
+            -
+            Page Change: Moved logout button (moved from hub to user view page)
+            Page Change: Version history style tweaks (added lines between versions)
+            -
+            **---NEW---**
+            -
+            Page Added: user view (allows user to see information stored and logout)
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "11/18/25",
+          description: `
+            PRE-ALPHA
+            1.01.00
+            -
+            TLDR: New pages
+            -
+            **---BUGFIXES---**
+            -
+            -
+            **---TWEAKS---**
+            -
+            -
+            **---NEW---**
+            -
+            Page Added: join request (create join request to the group)
+            Page Added: join request manager (accept / deny join requests)
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+        createVersionHistoryElement_({
+          versionId: "PRE-ALPHA",
+          releaseDate: "11/12/25",
+          description: `
+            PRE-ALPHA
+            1.00.00
+            -
+            TLDR: Webapp release
+            -
+            Pre-Alpha release of the webapp
+            Only avalible to specific testers
+            -
+            paxishtar
+            Forsaken Bennie
+            Blaze
+            -
+          `,
+        }),
+        {
+          type: UIElementType.LINE,
+          Access:{ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ RANK.ALL ] },
+        },
+      ]
+    },
+    { 
+      type: UIElementType.BUTTON, id: "back", label: "BACK", description: "Back to previous menu", 
+      Access:{ permission: PERMISSION.USER, rankList:[ RANK.ALL ], divisionList:[ DIVISION.RESEARCH_AND_DEVELOPMENT ] },
+      onClick: () => {
+        setMenuUI(UIGroup.HUB);
+      }, 
+    },
+  ];
