@@ -1363,22 +1363,22 @@
   const Spreadsheet = Object.freeze({
 
     UserData:  Object.freeze({
-      id: "1GaiGmeYRlEyKa5T9T5fI0A207JfIlfa033hsZevvnLA",
-      name: "UserData",
+      id: "REMOVED FOR GITHUB",
+      name: "REMOVED FOR GITHUB",
       Access:  Object.freeze({ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] }),
       Sheet: Object.freeze({
-        Member_Archive: Object.freeze({ id: "345117864", name: "Member Archive", Access: { permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
-        Admin_Archive: Object.freeze({ id: "354041019", name: "Admin Archive", Access: { permission: PERMISSION.ADMIN, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
-        Join_Request: Object.freeze({ id: "725217071", name: "Join Request", Access: { permission: PERMISSION.USER, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
+        Member_Archive: Object.freeze({ id: "REMOVED FOR GITHUB", name: "REMOVED FOR GITHUB", Access: { permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
+        Admin_Archive: Object.freeze({ id: "REMOVED FOR GITHUB", name: "REMOVED FOR GITHUB", Access: { permission: PERMISSION.ADMIN, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
+        Join_Request: Object.freeze({ id: "REMOVED FOR GITHUB", name: "REMOVED FOR GITHUB", Access: { permission: PERMISSION.USER, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] } }),
       })
     }),
 
     Archives: Object.freeze({
-      id: "1aMUXfaznirMjqbBRH2v_9231P63y52yis3qYnyOQ1sU",
-      name: "Archives",
+      id: "REMOVED FOR GITHUB",
+      name: "REMOVED FOR GITHUB",
       Access: Object.freeze({ permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] }),
       Sheet: Object.freeze({
-        Logistics: Object.freeze({ id: "0", name: "Logistics Archive", Access: { permission: PERMISSION.USER, rankList:[ RANK.ALL ], divisionList:[ DIVISION.RESEARCH_AND_DEVELOPMENT ] } }),
+        Logistics: Object.freeze({ id: "REMOVED FOR GITHUB", name: "REMOVED FOR GITHUB", Access: { permission: PERMISSION.USER, rankList:[ RANK.ALL ], divisionList:[ DIVISION.RESEARCH_AND_DEVELOPMENT ] } }),
       })
     })
 
