@@ -1,0 +1,101 @@
+<script id="JS-CarouselEmbed">
+class CarouselEmbed {
+  #carouselEmbedContainer;
+  #carouselButtonContainer
+  #carouselElementContainer;
+  #uiCarouselElementList;
+  #backButton;
+  #nextButton;
+  #step = 0;
+
+  constructor(uiCarouselElementList, params, container) {
+    console.log("creating carousel embed container element");
+    this.#carouselEmbedContainer = document.createElement("div");
+    this.#carouselEmbedContainer.id = "carouselEmbed";
+    this.#uiCarouselElementList = uiCarouselElementList;
+    this.#carouselButtonContainer = document.createElement("div");
+    this.#carouselButtonContainer.style = `
+      position: sticky; 
+      top: -1em; 
+      background-color: var(--background); 
+      width: 100%; 
+      padding: 1em;
+      box-sizing: border-box;
+      border-bottom: 2px solid var(--border);
+    `;
+    this.#carouselElementContainer = document.createElement("div");
+
+    this.#backButton = createUIElement({ 
+      type: UIElementType.BUTTON, 
+      container: this.#carouselButtonContainer, 
+      params: {
+        id: "back", 
+        label: "BACK", 
+        description: "", 
+        Access: params.Access,
+        onClick: () => this.backStep()
+      }
+    });
+    this.#nextButton = createUIElement({ 
+      type: UIElementType.BUTTON, 
+      container: this.#carouselButtonContainer, 
+      params: {
+        id: "next", 
+        label: "NEXT", 
+        description: "", 
+        Access: params.Access, 
+        onClick: () => this.nextStep()
+      }
+    });
+    
+    this.#carouselEmbedContainer.appendChild(this.#carouselButtonContainer);
+    this.#carouselEmbedContainer.appendChild(this.#carouselElementContainer);
+    container.appendChild(this.#carouselEmbedContainer);
+
+    // set step ONLY if there are elements to go through
+    if (this.#uiCarouselElementList.length > 0) {
+      this.setStep(0);
+    } else {
+      this.#nextButton.style.display = "none";
+      this.#backButton.style.display = "none";
+      fillContainerWith({ 
+        container: this.#carouselElementContainer, 
+        elements: [
+          { 
+            type: UIElementType.TEXT, textType:TextType.H3, id: "carousel-embed-empty-text",  
+            Access: { permission: PERMISSION.ALL, rankList:[ RANK.ALL ], divisionList:[ DIVISION.ALL ] },
+            content: `NO DATA TO DISPLAY`,
+          },
+        ] 
+      });
+    }
+  }
+
+  nextStep() {
+    this.setStep(this.#step + 1);
+  }
+
+  backStep() {
+    this.setStep(this.#step - 1);
+  }
+
+  setStep(value) {
+    if (value > this.#uiCarouselElementList.length || value == this.#uiCarouselElementList.length - 1 ) { 
+      value = this.#uiCarouselElementList.length - 1;
+      this.#nextButton.style.display = "none";
+    } else {
+      this.#nextButton.style.display = "block";
+    }
+    if (value < 0 || value == 0) { 
+      value = 0;
+      this.#backButton.style.display = "none";
+    } else {
+      this.#backButton.style.display = "block";
+    }
+
+    this.#step = value;
+    fillContainerWith({ container: this.#carouselElementContainer, elements: this.#uiCarouselElementList[this.#step] });
+  }
+
+}
+</script>
