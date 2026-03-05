@@ -1,0 +1,55 @@
+<!-- JS-Login.html -->
+<script id="JS-Login">
+/* login manager for the site */
+
+// DISCORD LOGIN
+function discordloginPopup() {
+  google.script.run.withSuccessHandler(function(url) {
+    // if no url returned user is already logged in
+    if (!url) {
+      alert("Already logged in!");
+      setMenuUI(UIGroupName.DISCORD_LOGIN);
+      return;
+    }
+
+    // pop up style
+    const width = 500;
+    const height = 700;
+    const left = (screen.width - width) / 2;
+    const top = (screen.height - height) / 2;
+
+    // create popup
+    const popup = window.open(
+      url,
+      "DiscordLogin",
+      `width=${width},height=${height},top=${top},left=${left}`
+    );
+
+    // if popup not created alert to allow popups
+    if (!popup) {
+      alert("Popup blocked! Please allow popups for this site.");
+      return;
+    }
+
+    // poll (repeatedly Ping) created popup to check for login
+    const checkLogin = setInterval(() => {
+      // If popup is closed on ping, end poll.
+      if (!popup || popup.closed) {
+        clearInterval(checkLogin);
+        console.log("Popup closed before login, stopping poll.");
+        return;
+      }
+      // once has access (login) close popup, load page, and end poll
+      google.script.run.withSuccessHandler(hasAccess => {
+        if (hasAccess) {
+          clearInterval(checkLogin);
+          console.log("Popup login successful, stopping poll.");
+          popup.close();
+          pageStartUp();
+        }
+      }).checkAccess();
+    }, sec_to_ms(1.5));
+  }).getAuthUrl(); // function used to poll;
+}
+
+</script>
