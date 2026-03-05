@@ -1,0 +1,69 @@
+<!-- HTML-Main.html -->
+<!DOCTYPE html>
+<html>
+
+
+<head>
+
+<base target="_top">
+<?!= include("CSS-Themes"); ?>
+<?!= include("CSS-Text"); ?>
+<?!= include("CSS-Menu"); ?>
+
+</head>
+
+
+<body>
+  <!--
+  <button 
+    onclick="toggleTheme('blue')" 
+    style="
+      position:absolute;top:20px;right:20px;
+      background:none;border:1px solid var(--primary);
+      color:var(--text);padding:5px 10px;cursor:pointer;">
+    Toggle Color
+  </button>
+  -->
+
+  <div class="screen">
+    <div class="header">
+      <h1>UNITED STATES PROVISIONAL AUTHORITY WEBPORTAL</h1>
+      <p>UNIFIED OPERATING SYSTEM</p>
+      <p style="color: var(--text-soft);">COPYRIGHT 2094 USPA</p>
+    </div>
+    
+    <div id="menu">
+      <!-- Menu items added through script -->
+      <!-- Children wiped often from code so dont put elements in here manually -->
+    </div>
+
+    <div id="boot">
+      <!-- Children wiped often from code so dont put elements in here manually -->
+    </div>
+
+    <div class="status-bar">
+      <div>
+        <span id="Version_Display">VERSION:</span> <span id="Site_Version"><?!= SITE_VERSION ?></span> |
+        <span id="User_Type">LOADING USER...</span> <span id="User_Rank"></span> <span id="User_Name"></span> <span id="User_Division"></span>
+      </div>
+      <div>
+        <span style="color: var(--primary);">●</span> SYSTEM ONLINE
+      </div>
+    </div>
+  </div>
+
+  <div class="scan"></div>
+  <div class="flicker"></div>
+</body>
+
+<!-- Apps Script include -->
+<?!= include("JS-Helper"); ?>
+<?!= include("JS-MentionComposeEmbed"); ?>
+<?!= include("JS-ActivityDetector"); ?>
+<?!= include("JS-Login"); ?>
+<?!= include("JS-SheetEmbed"); ?>
+<?!= include("JS-CarouselEmbed"); ?>
+<?!= include("JS-UI"); ?>
+<?!= include("JS-Main"); ?>
+</html>
+
